@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+Use App\Tweet;
+
+class TweetsUnique extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'tweets:unique';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command description';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
+    public function handle()
+    {
+	$data = Tweet::select('id','idx')
+		->raw('count(`id`) as idy')
+                ->groupBy('id')
+                ->having('idy', '>', 1)
+                ->skip(0)->take(100)
+                ->get();
+	var_dump($data);
+    }
+}

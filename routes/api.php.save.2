@@ -1,0 +1,70 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Requests ;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Redirect;
+
+Use App\Tweet;
+use App\Http\Controllers\TweetController;
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+//Route::get('articles', 'TweetController@index');
+
+Route::get('tweets', function() {
+    if(!empty($_GET['start']) && !empty($_GET['end']) && !empty($_GET['lang']) && !empty($_GET['limit'])) {
+	if(!empty($_GET['location']){
+		$data = Tweet::select('json')->whereRaw("(created_at >= ? AND created_at <= ?)", [$_GET['start']." 00:00:00", $_GET['end']." 23:59:59"])->where('json->lang','=',$_GET['lang'])->where('json->user->location','=',$_GET['location'])->skip(0)->take($_GET['limit'])->get();
+	} else {
+		$data = Tweet::select('json')->whereRaw("(created_at >= ? AND created_at <= ?)", [$_GET['start']." 00:00:00", $_GET['end']." 23:59:59"])->where('json->lang','=',$_GET['lang'])->where('json->user->location','!=','null')->skip(0)->take($_GET['limit'])->get();
+	}
+		$data = Tweet::select('json')->whereRaw("(created_at >= ? AND created_at <= ?)", [$_GET['start']." 00:00:00", $_GET['end']." 23:59:59"])->where('json->lang','=',$_GET['lang'])->where('json->user->location','!=','null')->skip(0)->take($_GET['limit'])->get();    } else {
+	$data = Tweet::select('json')->where('json->lang','=','in')->where('json->user->location','!=','null')->skip(0)->take(1000)->get();
+    }
+    //$data = Tweet::select('json')->where('json->lang','=','in')->where('json->user->location','!=','null')->skip(0)->take(1000)->get();
+    $newdata = json_decode($data);
+    $stream = array();
+    foreach($newdata as $d) {
+	$json = json_decode($d->json);
+	$stream[] = array(
+		'id' => $json->id,
+		'text' => $json->text,
+		'created_at' => $json->created_at,
+		'retweet_count' => $json->retweet_count,
+		'favorite_count' => $json->favorite_count,
+		'lang' => $json->lang,
+		'geo' => $json->geo,
+		'coordinates' => $json->coordinates,
+		'place' => $json->place,
+		'user' => array(
+                        'id' => $json->user->id,
+                        'screen_name' => $json->user->screen_name,
+                        'location' => $json->user->location,
+                        'verified' => $json->user->verified,
+                        'followers_count' => $json->user->followers_count,
+                        'friends_count' => $json->user->friends_count,
+                        'listed_count' => $json->user->listed_count,
+                        'favourites_count' => $json->user->favourites_count,
+                        'statuses_count' => $json->user->statuses_count,
+                        'profile_image_url' => $json->user->profile_image_url
+  	      	),
+	);
+    }
+    return $stream;
+});
+
+//Route::get('tweets', 'TweetController@index');

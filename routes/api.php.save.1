@@ -1,0 +1,89 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Requests ;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Redirect;
+
+Use App\Tweet;
+use App\Http\Controllers\TweetController;
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+//Route::get('articles', 'TweetController@index');
+
+Route::get('tweets', function() {
+    // If the Content-Type and Accept headers are set to 'application/json', 
+    // this will return a JSON structure. This will be cleaned up later.
+    /* $start  = Input::get('start');
+    $end  = Input::get('end');
+    if(!empty($start) && !empty($end)) {
+	return Tweet::whereRaw("(created_at >= ? AND created_at <= ?)", [$start." 00:00:00", $end." 23:59:59"])->get();
+    } else {
+	return Tweet::all
+    } */
+    return Tweet::skip(0)->take(15)->get();
+});
+
+Route::get('newtweets', function() {
+    // If the Content-Type and Accept headers are set to 'application/json', 
+    // this will return a JSON structure. This will be cleaned up later.
+    /* $start  = Input::get('start');
+    $end  = Input::get('end');
+    if(!empty($start) && !empty($end)) {
+        return Tweet::whereRaw("(created_at >= ? AND created_at <= ?)", [$start>
+    } else {
+        return Tweet::all
+    } */
+    $data = Tweet::select('json')->skip(0)->take(15)->get();
+    $newdata = json_decode($data);
+    $stream = array();
+    foreach($newdata as $d) {
+	$json = json_decode($d->json);
+	$stream[] = array(
+		'id' => $json->id,
+		'text' => $json->text,
+		'created_at' => $json->created_at,
+		'retweet_count' => $json->retweet_count,
+		'favorite_count' => $json->favorite_count,
+		'lang' => $json->lang,
+		'geo' => $json->geo,
+		'coordinates' => $json->coordinates,
+		'place' => $json->place,
+		'user' => array(			'id' => $json->user->id,
+			'screen_name' => $json->user->screen_name,
+			'location' => $json->user->location,
+			'verified' => $json->user->verified,
+			'followers_count' => $json->user->followers_count,
+			'friends_count' => $json->user->friends_count,
+			'listed_count' => $json->user->listeds_count,
+			'favourites_count' => $json->user->favourites_count,
+			'statuses_count' => $json->user->statuses_count,
+			'profile_image_url' => $json->user->profile_image_url
+		),
+	);
+    }
+    return $stream;
+});
+
+//Route::get('tweets', 'TweetController@index');
+
+Route::get('tweets/{start}/{end}', function($start,$end) {
+    // If the Content-Type and Accept headers are set to 'application/json',
+    // this will return a JSON structure. This will be cleaned up later.
+    return Tweet::whereRaw("(created_at >= ? AND created_at <= ?)", [$start." 00:00:00", $end." 23:59:59"])->get();
+	//return Input::get('start');
+});

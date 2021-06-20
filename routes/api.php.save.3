@@ -1,0 +1,61 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Requests ;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Redirect;
+
+Use App\Tweet;
+use App\Http\Controllers\TweetController;
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+//Route::get('articles', 'TweetController@index');
+
+Route::get('tweets', function() {
+    // If the Content-Type and Accept headers are set to 'application/json', 
+    // this will return a JSON structure. This will be cleaned up later.
+    /* $start  = Input::get('start');
+    $end  = Input::get('end');
+    if(!empty($start) && !empty($end)) {
+	return Tweet::whereRaw("(created_at >= ? AND created_at <= ?)", [$start." 00:00:00", $end." 23:59:59"])->get();
+    } else {
+	return Tweet::all
+    } */
+    return Tweet::skip(0)->take(15)->get();
+});
+
+Route::get('newtweets', function() {
+    // If the Content-Type and Accept headers are set to 'application/json', 
+    // this will return a JSON structure. This will be cleaned up later.
+    /* $start  = Input::get('start');
+    $end  = Input::get('end');
+    if(!empty($start) && !empty($end)) {
+        return Tweet::whereRaw("(created_at >= ? AND created_at <= ?)", [$start>
+    } else {
+        return Tweet::all
+    } */
+    return Tweet::select('json')s->get();;
+});
+
+//Route::get('tweets', 'TweetController@index');
+
+Route::get('tweets/{start}/{end}', function($start,$end) {
+    // If the Content-Type and Accept headers are set to 'application/json',
+    // this will return a JSON structure. This will be cleaned up later.
+    return Tweet::whereRaw("(created_at >= ? AND created_at <= ?)", [$start." 00:00:00", $end." 23:59:59"])->get();
+	//return Input::get('start');
+});
